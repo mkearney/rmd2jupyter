@@ -10,6 +10,11 @@ rmd2jupyter <- function(x) {
   con <- file(x)
   x <- readLines(con, warn = FALSE)
   close(con)
+  ## strip yaml
+  if (grepl("^---", x[1])) {
+    yaml_end <- grep("^---", x)[2]
+    x <- x[-c(1:yaml_end)]
+  }
   chunks <- grep("^```", x)
   lns <- unique(sort(c(1, chunks, chunks - 1L, length(x))))
   if (chunks[length(chunks)] == length(x)) lns <- c(lns, length(x))
