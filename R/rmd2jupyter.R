@@ -13,7 +13,7 @@ rmd2jupyter <- function(x) {
   ## strip yaml
   if (grepl("^---", x[1])) {
     yaml_end <- grep("^---", x)[2]
-    x <- x[-c(1:yaml_end)]
+    x <- x[(yaml_end + 1L):length(x)]
   }
   chunks <- grep("^```", x)
   if (length(chunks) == 0L) {
@@ -23,10 +23,19 @@ rmd2jupyter <- function(x) {
     names(chunks) <- c("start", "end")
     chunks$cell_type <- "markdown"
   } else {
-    lns <- unique(sort(c(1, chunks, chunks - 1L, length(x))))
-    if (chunks[length(chunks)] == length(x) && length(lns) %% 2L == 1L) {
-      chunks <- matrix(lns, ncol = 2, byrow = TRUE)
+    lns <- sort(c(
+      1L, length(x), chunks,
+      chunks[seq(1, length(chunks), 2)] - 1L,
+      chunks[seq(2, length(chunks), 2)] + 1L
+    ))
+    lns <- lns[lns > 0 & lns <= length(x)]
+    if (chunks[length(chunks)] == length(x)) {
+      lns <- lns[-length(lns)]
     }
+    if (chunks[1L] == 1L) {
+      lns <- lns[-1]
+    }
+    chunks <- matrix(lns, ncol = 2, byrow = TRUE)
     chunks <- data.frame(chunks)
     names(chunks) <- c("start", "end")
     codes <- grep("^```", x)
@@ -60,14 +69,14 @@ format_cell <- function(cell_type,
                         source) {
   if (cell_type == "code") {
     x <- list(cell_type = cell_type,
-         execution_count = "",
-         metadata = "",
-         outputs = "",
-         source = source)
+              execution_count = "",
+              metadata = "",
+              outputs = "",
+              source = source)
   } else {
     x <- list(cell_type = cell_type,
-         metadata = "",
-         source = source)
+              metadata = "",
+              source = source)
   }
   x
 }
@@ -75,22 +84,21 @@ format_cell <- function(cell_type,
 
 format_cells <- function(cells) {
   x <- list(cells = unname(cells),
-    metadata = list(
-      "anaconda-cloud" = "",
-      "kernelspec" = list(
-        "display_name" = "R",
-        "langauge" = "R",
-        "name" = "ir"),
-      "language_info" = list(
-        "codemirror_mode" = "r",
-        "file_extension" = ".r",
-        "mimetype" = "text/x-r-source",
-        "name" = "R",
-        "pygments_lexer" = "r",
-        "version" = "3.4.1")
-    ),
-    "nbformat" = 4,
-    "nbformat_minor" = 1)
+            metadata = list(
+              "anaconda-cloud" = "",
+              "kernelspec" = list(
+                "display_name" = "R",
+                "langauge" = "R",
+                "name" = "ir"),
+              "language_info" = list(
+                "codemirror_mode" = "r",
+                "file_extension" = ".r",
+                "mimetype" = "text/x-r-source",
+                "name" = "R",
+                "pygments_lexer" = "r",
+                "version" = "3.4.1")
+            ),
+            "nbformat" = 4,
+            "nbformat_minor" = 1)
   jsonlite::toJSON(x, auto_unbox = TRUE)
 }
-
