@@ -6,6 +6,7 @@
 #' @return Saves file with .ipynb extension
 #' @export
 rmd2jupyter <- function(x) {
+  save_as <- gsub("\\.Rmd", ".ipynb", x)
   con <- file(x)
   x <- readLines(con, warn = FALSE)
   close(con)
@@ -35,7 +36,8 @@ rmd2jupyter <- function(x) {
   x <- gsub("count\": \"\"", "count\": null", x)
   x <- gsub("metadata\": \"\"", "metadata\": {}", x)
   x <- gsub("outputs\": \"\"", "outputs\": []", x)
-  x
+  cat(x, file = save_as)
+  message(paste("file saved as", save_as))
 }
 
 
