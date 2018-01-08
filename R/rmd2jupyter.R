@@ -16,25 +16,33 @@ rmd2jupyter <- function(x) {
     x <- x[-c(1:yaml_end)]
   }
   chunks <- grep("^```", x)
-  lns <- unique(sort(c(1, chunks, chunks - 1L, length(x))))
-  if (chunks[length(chunks)] == length(x)) lns <- c(lns, length(x))
-  chunks <- matrix(lns, ncol = 2, byrow = TRUE)
-  chunks <- data.frame(chunks)
-  names(chunks) <- c("start", "end")
-  codes <- grep("^```", x)
-  codes <- codes[seq(1, length(codes), 2)]
-  chunks$cell_type <- ifelse(chunks$start %in% codes, "code", "markdown")
-  x <- gsub("^```.*", "", x)
+  if (length(chunks) == 0L) {
+    lns <- c(1L, length(x))
+    chunks <- matrix(lns, ncol = 2, byrow = TRUE)
+    chunks <- data.frame(chunks)
+    names(chunks) <- c("start", "end")
+    chunks$cell_type <- "markdown"
+  } else {
+    lns <- unique(sort(c(1, chunks, chunks - 1L, length(x))))
+    if (chunks[length(chunks)] == length(x)) lns <- c(lns, length(x))
+    chunks <- matrix(lns, ncol = 2, byrow = TRUE)
+    chunks <- data.frame(chunks)
+    names(chunks) <- c("start", "end")
+    codes <- grep("^```", x)
+    codes <- codes[seq(1, length(codes), 2)]
+    chunks$cell_type <- ifelse(chunks$start %in% codes, "code", "markdown")
+    x <- gsub("^```.*", "", x)
+  }
   for (i in seq_len(nrow(chunks))) {
     s <- paste0(x[(chunks$start[i]):(chunks$end[i])], "\n")
-    if (s[1] == "\n" & length(s) > 2L) s <- s[-1]
-    if (s[1] == "\n" & length(s) > 2L) s <- s[-1]
-    if (s[length(s)] == "\n" & length(s) > 2L) s <- s[-length(s)]
-    if (s[length(s)] == "\n" & length(s) > 2L) s <- s[-length(s)]
+    ## trim top and bottom blank lines
+    while (s[1] == "\n" & length(s) > 2L) {
+      s <- s[-1]
+    }
+    while (s[length(s)] == "\n" & length(s) > 2L) {
+      s <- s[-length(s)]
+    }
     chunks$source[i] <- I(list(s))
-    #paste(
-    #x[(chunks$start[i]):(chunks$end[i])], collapse = "\n"
-    #)
   }
   cells <- Map(format_cell, chunks$cell_type, chunks$source)
   x <- jsonlite::prettify(format_cells(cells))
