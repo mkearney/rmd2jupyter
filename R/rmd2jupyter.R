@@ -24,8 +24,9 @@ rmd2jupyter <- function(x) {
     chunks$cell_type <- "markdown"
   } else {
     lns <- unique(sort(c(1, chunks, chunks - 1L, length(x))))
-    if (chunks[length(chunks)] == length(x)) lns <- c(lns, length(x))
-    chunks <- matrix(lns, ncol = 2, byrow = TRUE)
+    if (chunks[length(chunks)] == length(x) && length(lns) %% 2L == 1L) {
+      chunks <- matrix(lns, ncol = 2, byrow = TRUE)
+    }
     chunks <- data.frame(chunks)
     names(chunks) <- c("start", "end")
     codes <- grep("^```", x)
