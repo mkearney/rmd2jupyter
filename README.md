@@ -45,11 +45,15 @@ rmarkdown::render(tmp)
 browseURL(gsub("\\.Rmd$", ".html", tmp))
 ```
 
+#### Rmd -&gt; html
+
 Screen capture of output.
 
 ![](tools/readme/ss_rmd.png)
 
-Now convert to .ipynb.
+#### Rmd -&gt; ipynb.
+
+Now convert to an ipython notebook.
 
 ``` r
 ## install and load rmd2jupyter
@@ -59,7 +63,7 @@ library(rmd2jupyter)
 ## convert
 rmd2jupyter(tmp)
 
-## onen via jupyter notebook method
+## open via your jupyter notebook method
 ```
 
 Screen capture of jupyter notebook.
